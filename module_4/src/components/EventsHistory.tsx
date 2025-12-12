@@ -87,6 +87,8 @@ export default function EventsHistory({ refreshKey }: EventsHistoryProps) {
         <Grid columns="1" gap="3">
           {allEvents.map((event, index) => {
             const eventData = event.parsedJson as any;
+            console.log(eventData);
+            eventData.id = eventData.id || eventData.list_hero_id;
             
             return (
               <Card key={`${event.id.txDigest}-${index}`} style={{ padding: "16px" }}>

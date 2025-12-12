@@ -13,7 +13,7 @@ export default function SharedObjects({ refreshKey, setRefreshKey }: RefreshProp
   const [isBuying, setIsBuying] = useState<{ [key: string]: boolean }>({});
   const { mutate: signAndExecute } = useSignAndExecuteTransaction();
 
-  const { data: listedEvents, isPending: eventsLoading } = useSuiClientQuery(
+  const { data: inputEvents, isPending: eventsLoading } = useSuiClientQuery(
     "queryEvents",
     {
       query: {
@@ -28,18 +28,22 @@ export default function SharedObjects({ refreshKey, setRefreshKey }: RefreshProp
     }
   );
 
+  const listedEvents = inputEvents?.data?.map(ev => {
+    ev.parsedJson.id = ev.parsedJson.list_hero_id;
+    return ev;
+  });
   const { data, isPending, error } = useSuiClientQuery(
     "multiGetObjects",
     {
-      ids: listedEvents?.data?.map(event => (event.parsedJson as any).id) || [],
+      ids: listedEvents?.map(event => (event.parsedJson as any).id) || [],
       options: {
         showContent: true,
         showType: true
       }
     },
     {
-      enabled: !!packageId && !!listedEvents?.data?.length,
-      queryKey: ["multiGetObjects", listedEvents?.data?.map(event => (event.parsedJson as any).id), refreshKey],
+      enabled: !!packageId && !!listedEvents?.length,
+      queryKey: ["multiGetObjects", listedEvents?.map(event => (event.parsedJson as any).id), refreshKey],
     }
   );
 
@@ -87,7 +91,7 @@ export default function SharedObjects({ refreshKey, setRefreshKey }: RefreshProp
     );
   }
 
-  if (!listedEvents?.data?.length) {
+  if (!listedEvents?.length) {
     return (
       <Flex direction="column" gap="4">
         <Heading size="5">Hero Marketplace (0)</Heading>
@@ -158,6 +162,9 @@ export default function SharedObjects({ refreshKey, setRefreshKey }: RefreshProp
                     
                     <Text size="3" color="gray">
                       Seller: {fields.seller.slice(0, 6)}...{fields.seller.slice(-4)}
+                    </Text>
+                    <Text size="3" color="gray">
+                      Id: {JSON.stringify(fields)}
                     </Text>
                   </Flex>
 
